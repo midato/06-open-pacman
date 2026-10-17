@@ -1,6 +1,6 @@
 # AGENTS.md
 
-## What this is
+## What this is?
 
 Vanilla JS Pac-Man (no framework, no bundler). The repo's purpose is learning
 **spec-driven development**: features start as a spec in `specs/`, then get
