@@ -163,6 +163,13 @@ function decideGhost( game, g ) {
       ? { x: 2 * ahead.x - hunter.x, y: 2 * ahead.y - hunter.y }
       : { x: Math.round( p.x ), y: Math.round( p.y ) };
     g.dir = towardTarget( choices, g, target );
+  } else if ( g.kind === 'shy' ) {
+    const dist = Math.abs( Math.round( p.x ) - g.x ) + Math.abs( Math.round( p.y ) - g.y );
+    // Lejos persigue; cerca huye a su esquina.
+    const target = dist > SHY_THRESHOLD
+      ? { x: Math.round( p.x ), y: Math.round( p.y ) }
+      : SHY_CORNER;
+    g.dir = towardTarget( choices, g, target );
   } else {
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
