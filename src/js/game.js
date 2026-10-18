@@ -13,6 +13,11 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
+const PINKY_AHEAD = 4;            // ambusher apunta 4 celdas frente a Pac-Man
+const INKY_AHEAD = 2;             // inky usa 2 celdas frente a Pac-Man
+const SHY_THRESHOLD = 8;          // shy huye si distancia Manhattan <= 8
+const SHY_CORNER = { x: 1, y: 29 }; // esquina a la que huye shy
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
