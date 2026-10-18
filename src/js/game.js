@@ -171,6 +171,7 @@ function decideGhost( game, g ) {
       : SHY_CORNER;
     g.dir = towardTarget( choices, g, target );
   } else {
+    // Fallback: kind desconocido -> movimiento aleatorio.
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
 }
