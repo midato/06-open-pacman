@@ -13,6 +13,11 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
+const PINKY_AHEAD = 4;            // ambusher apunta 4 celdas frente a Pac-Man
+const INKY_AHEAD = 2;             // inky usa 2 celdas frente a Pac-Man
+const SHY_THRESHOLD = 8;          // shy huye si distancia Manhattan <= 8
+const SHY_CORNER = { x: 1, y: 29 }; // esquina a la que huye shy
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -110,6 +115,24 @@ function movePacman( game ) {
   wrapTunnel( p, width );
 }
 
+// Elige entre `choices` la direccion que mas reduce la distancia de Manhattan
+// de la siguiente celda del fantasma a `target`.
+function towardTarget( choices, g, target ) {
+  let best = choices[ 0 ];
+  let bestDist = Infinity;
+  for ( const dir of choices ) {
+    const d = DIRS[ dir ];
+    const nx = g.x + d.x;
+    const ny = g.y + d.y;
+    const dist = Math.abs( nx - target.x ) + Math.abs( ny - target.y );
+    if ( dist < bestDist ) {
+      bestDist = dist;
+      best = dir;
+    }
+  }
+  return best;
+}
+
 function decideGhost( game, g ) {
   const grid = game.grid;
   const p = game.pacman;
@@ -121,22 +144,34 @@ function decideGhost( game, g ) {
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
   if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
-    let best = choices[ 0 ];
-    let bestDist = Infinity;
-    for ( const dir of choices ) {
-      const d = DIRS[ dir ];
-      const nx = g.x + d.x;
-      const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
-      if ( dist < bestDist ) {
-        bestDist = dist;
-        best = dir;
-      }
-    }
-    g.dir = best;
+    g.dir = towardTarget( choices, g, { x: Math.round( p.x ), y: Math.round( p.y ) } );
+  } else if ( g.kind === 'ambusher' ) {
+    const d = DIRS[ p.dir ];
+    g.dir = towardTarget( choices, g, {
+      x: Math.round( p.x ) + d.x * PINKY_AHEAD,
+      y: Math.round( p.y ) + d.y * PINKY_AHEAD,
+    } );
+  } else if ( g.kind === 'inky' ) {
+    const d = DIRS[ p.dir ];
+    const ahead = {
+      x: Math.round( p.x ) + d.x * INKY_AHEAD,
+      y: Math.round( p.y ) + d.y * INKY_AHEAD,
+    };
+    const hunter = game.ghosts.find( ( gh ) => gh.kind === 'hunter' );
+    // Sin hunter: degrada a persecucion directa.
+    const target = hunter
+      ? { x: 2 * ahead.x - hunter.x, y: 2 * ahead.y - hunter.y }
+      : { x: Math.round( p.x ), y: Math.round( p.y ) };
+    g.dir = towardTarget( choices, g, target );
+  } else if ( g.kind === 'shy' ) {
+    const dist = Math.abs( Math.round( p.x ) - g.x ) + Math.abs( Math.round( p.y ) - g.y );
+    // Lejos persigue; cerca huye a su esquina.
+    const target = dist > SHY_THRESHOLD
+      ? { x: Math.round( p.x ), y: Math.round( p.y ) }
+      : SHY_CORNER;
+    g.dir = towardTarget( choices, g, target );
   } else {
+    // Fallback: kind desconocido -> movimiento aleatorio.
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
 }
