@@ -151,6 +151,18 @@ function decideGhost( game, g ) {
       x: Math.round( p.x ) + d.x * PINKY_AHEAD,
       y: Math.round( p.y ) + d.y * PINKY_AHEAD,
     } );
+  } else if ( g.kind === 'inky' ) {
+    const d = DIRS[ p.dir ];
+    const ahead = {
+      x: Math.round( p.x ) + d.x * INKY_AHEAD,
+      y: Math.round( p.y ) + d.y * INKY_AHEAD,
+    };
+    const hunter = game.ghosts.find( ( gh ) => gh.kind === 'hunter' );
+    // Sin hunter: degrada a persecucion directa.
+    const target = hunter
+      ? { x: 2 * ahead.x - hunter.x, y: 2 * ahead.y - hunter.y }
+      : { x: Math.round( p.x ), y: Math.round( p.y ) };
+    g.dir = towardTarget( choices, g, target );
   } else {
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
