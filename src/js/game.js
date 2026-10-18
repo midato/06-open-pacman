@@ -145,6 +145,12 @@ function decideGhost( game, g ) {
 
   if ( g.kind === 'hunter' ) {
     g.dir = towardTarget( choices, g, { x: Math.round( p.x ), y: Math.round( p.y ) } );
+  } else if ( g.kind === 'ambusher' ) {
+    const d = DIRS[ p.dir ];
+    g.dir = towardTarget( choices, g, {
+      x: Math.round( p.x ) + d.x * PINKY_AHEAD,
+      y: Math.round( p.y ) + d.y * PINKY_AHEAD,
+    } );
   } else {
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
